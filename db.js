@@ -26,6 +26,23 @@ for (let k of [
   'patch',
   'remove',
 ]) {
-  exports[k] = (name, ...args) =>
-    exports.getService(name)[k](...args);
+  exports[k] = async (name, ...args) => {
+    let service = exports.getService(name);
+
+    if (service.requestFilter) {
+      args = (await service.requestFilter(...args)) || args;
+    }
+
+    let data = await exports.getService(name)[k](...args);
+
+    if (!Array.isArray(data)) {
+      data = [data];
+    }
+
+    if (service.responseFilter) {
+      data = await service.responseFilter(data, ...args);
+    }
+
+    return data;
+  };
 }
