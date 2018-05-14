@@ -74,3 +74,79 @@ for (let k of [
     return params.results;
   };
 }
+
+exports.superQuery = async cmds => {
+  let ret = {
+    total: null,
+    limit: null,
+    skip: null,
+
+    main: null,
+    auxiliary: {},
+  };
+
+  let slots = {};
+
+  for (let [i, cmd] of cmds.entries()) {
+    cmd.query = expandSlots(cmd.query, slots);
+    console.log(JSON.stringify(cmd, null, 2));
+
+    let results = await exports.find(cmd);
+
+    if (!ret.main) {
+      Object.assign(ret, {
+        total: results.total,
+        limit: results.limit,
+        skip: results.skip,
+      });
+
+      slots[cmd.service] = ret.main = results.data;
+
+      continue;
+    }
+
+    let { paginate } = cmd.paginate == null
+      ? exports.getService(cmd.service)
+      : cmd;
+
+    if (results.total > paginate.max) {
+      throw new Error(
+        `Auxiliary query pagination is not allowed`,
+      );
+    }
+
+    slots[cmd.service] =
+      ret.auxiliary[cmd.service] =
+      results.data;
+  }
+
+  return ret;
+};
+
+function expandSlots(q, slots) {
+  if (typeof q !== 'object') {
+    return q;
+  }
+
+  if (Array.isArray(q)) {
+    return q.map(x => expandSlots(x, slots));
+  }
+
+  if (!q.$pluck) {
+    for (let [k, v] of Object.entries(q)) {
+      q[k] = expandSlots(v, slots);
+    }
+
+    return q;
+  }
+
+  if (q.$pluck) {
+    let data = slots[q.$pluck];
+
+    if (q.key) {
+      data = data.map(x => x[q.key]);
+    }
+
+    return data;
+  }
+}

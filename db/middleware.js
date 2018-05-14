@@ -1,6 +1,18 @@
 let db = require('./api');
 
 exports.register = app => {
+  app.post('/api/superQuery', (req, res) => {
+    db.superQuery(req.body.map(x => ({
+      service: x.service,
+      query: x.query,
+    })))
+    .then(data => res.send(data))
+    .catch(err => {
+      console.error(err);
+      res.status(500).send();
+    });
+  });
+
   app.get('/api/:service', (req, res) => {
     db.find({
       service: req.params.service,
