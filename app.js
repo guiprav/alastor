@@ -5,6 +5,9 @@ let publicPath = `${__dirname}/client/public`;
 
 app.use(express.static(publicPath));
 
+app.use(require('body-parser').json());
+require('./db/middleware').register(app);
+
 app.get('/*', (req, res) => {
   res.sendFile(`${publicPath}/index.html`);
 });
