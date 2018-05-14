@@ -13,9 +13,16 @@ exports.getService = name => {
     autoload: true,
   });
 
-  return services[name] = makeService({
+  let service = services[name] = makeService({
     Model: collection,
   });
+
+  service.paginate = {
+    default: 100,
+    max: 100,
+  };
+
+  return service;
 };
 
 for (let k of [
@@ -33,6 +40,11 @@ for (let k of [
 
     let feathersParams = {
       query: params.query,
+
+      paginate: params.paginate == null
+        ? service.paginate
+        : params.paginate,
+
       // TODO: Implement other params.
     };
 
@@ -54,10 +66,6 @@ for (let k of [
     }
 
     params.results = await service[k](...feathersArgs);
-
-    if (!Array.isArray(params.results)) {
-      params.results = [params.results];
-    }
 
     if (service.responseFilter) {
       await service.responseFilter(params);
