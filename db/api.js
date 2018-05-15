@@ -75,49 +75,52 @@ for (let k of [
   };
 }
 
-exports.superQuery = async cmds => {
-  let ret = {
-    total: null,
-    limit: null,
-    skip: null,
+exports.superQuery = async queries => {
+  let ret = {};
 
-    main: null,
-    auxiliary: {},
-  };
+  for (let [k, cmds] of Object.entries(queries)) {
+    ret[k] = {
+      total: null,
+      limit: null,
+      skip: null,
 
-  let slots = {};
+      main: null,
+      auxiliary: {},
+    };
 
-  for (let [i, cmd] of cmds.entries()) {
-    cmd.query = expandSlots(cmd.query, slots);
-    console.log(JSON.stringify(cmd, null, 2));
+    let slots = {};
 
-    let results = await exports.find(cmd);
+    for (let cmd of cmds) {
+      cmd.query = expandSlots(cmd.query, slots);
 
-    if (!ret.main) {
-      Object.assign(ret, {
-        total: results.total,
-        limit: results.limit,
-        skip: results.skip,
-      });
+      let results = await exports.find(cmd);
 
-      slots[cmd.service] = ret.main = results.data;
+      if (!ret[k].main) {
+        Object.assign(ret[k], {
+          total: results.total,
+          limit: results.limit,
+          skip: results.skip,
+        });
 
-      continue;
+        slots[cmd.service] = ret[k].main = results.data;
+
+        continue;
+      }
+
+      let { paginate } = cmd.paginate == null
+        ? exports.getService(cmd.service)
+        : cmd;
+
+      if (results.total > paginate.max) {
+        throw new Error(
+          `Auxiliary query pagination is not allowed`,
+        );
+      }
+
+      slots[cmd.service] =
+        ret[k].auxiliary[cmd.service] =
+        results.data;
     }
-
-    let { paginate } = cmd.paginate == null
-      ? exports.getService(cmd.service)
-      : cmd;
-
-    if (results.total > paginate.max) {
-      throw new Error(
-        `Auxiliary query pagination is not allowed`,
-      );
-    }
-
-    slots[cmd.service] =
-      ret.auxiliary[cmd.service] =
-      results.data;
   }
 
   return ret;
