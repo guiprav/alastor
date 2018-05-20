@@ -2,37 +2,25 @@
 .searchBox-specs {
   width: 70%;
   margin: 0 auto;
-  text-align: center;
+  justify-content: center;
 }
 
 .searchBox-options {
-  margin-bottom: 15px;
+  margin-bottom: 7px !important;
 }
 
 .searchBox-specs {
-  margin-top: 18px;
+  margin-top: 18px !important;
 }
 
 .searchBox-option,
 .searchBox-spec {
-  display: inline-block;
-  border-radius: 20px;
-  padding: 4px 10px;
+  margin-right: -0.5rem;
 }
 
-.searchBox-option {
-  margin-top: 10px;
-  background-color: lightblue;
-}
-
-.searchBox-spec {
-  margin-bottom: 10px;
-  background-color: yellow;
-}
-
-.searchBox-option:not(:first-child),
-.searchBox-spec:not(:first-child) {
-  margin-left: 5px;
+.searchBox-option:last-child,
+.searchBox-spec:last-child {
+  margin-right: 0.5rem;
 }
 
 .searchBox-fakeInput {
