@@ -1,6 +1,9 @@
 let Collection = require('nedb');
 let makeService = require('feathers-nedb');
 
+let storagePath = process.env.STORAGE_PATH || __dirname;
+let collectionsPath = `${storagePath}/collections`;
+
 let services = exports.services = {};
 
 exports.getService = name => {
@@ -9,7 +12,7 @@ exports.getService = name => {
   }
 
   let collection = new Collection({
-    filename: `${__dirname}/collections/${name}.json`,
+    filename: `${collectionsPath}/${name}.json`,
     autoload: true,
   });
 
